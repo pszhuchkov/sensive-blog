@@ -25,7 +25,7 @@ class PostQuerySet(models.QuerySet):
 
 class TagQuerySet(models.QuerySet):
     def popular(self):
-        popular_tags = self.annotate(num_tags=Count('posts')).order_by('-num_tags')
+        popular_tags = self.annotate(num_posts=Count('posts')).order_by('-num_posts')
         return popular_tags
 
 
