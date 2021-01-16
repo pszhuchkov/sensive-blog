@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from blog.models import Post, Tag
-from django.db.models import Count, Prefetch
+from django.db.models import Count
 
 
 def serialize_post(post):
@@ -26,18 +26,14 @@ def serialize_tag(tag):
 
 def index(request):
 
-    prefetch_count_posts = Prefetch(
-        'tags', queryset=Tag.objects.annotate(num_posts=Count('posts'))
-    )
-
     most_popular_posts = Post.objects.popular()\
         .prefetch_related('author')\
-        .prefetch_related(prefetch_count_posts)[:5]\
+        .prefetch_tags_with_posts_count()[:5]\
         .fetch_with_comments_count()
 
     most_fresh_posts = Post.objects.order_by('-published_at')\
         .prefetch_related('author')\
-        .prefetch_related(prefetch_count_posts)[:5]\
+        .prefetch_tags_with_posts_count()[:5]\
         .annotate(num_comments=Count('comments'))
 
     most_popular_tags = Tag.objects.popular()[:5]
@@ -79,13 +75,9 @@ def post_detail(request, slug):
 
     most_popular_tags = Tag.objects.popular()[:5]
 
-    prefetch_count_posts = Prefetch(
-        'tags', queryset=Tag.objects.annotate(num_posts=Count('posts'))
-    )
-
     most_popular_posts = Post.objects.popular()\
         .prefetch_related('author')\
-        .prefetch_related(prefetch_count_posts)[:5]\
+        .prefetch_tags_with_posts_count()[:5]\
         .fetch_with_comments_count()
 
     context = {
@@ -101,18 +93,14 @@ def tag_filter(request, tag_title):
 
     most_popular_tags = Tag.objects.popular()[:5]
 
-    prefetch_count_posts = Prefetch(
-        'tags', queryset=Tag.objects.annotate(num_posts=Count('posts'))
-    )
-
     most_popular_posts = Post.objects.popular()\
         .prefetch_related('author')\
-        .prefetch_related(prefetch_count_posts)[:5]\
+        .prefetch_tags_with_posts_count()[:5]\
         .fetch_with_comments_count()
 
     related_posts = Post.objects.filter(tags=tag) \
         .prefetch_related('author') \
-        .prefetch_related(prefetch_count_posts)[:20]\
+        .prefetch_tags_with_posts_count()[:20]\
         .fetch_with_comments_count()
 
     context = {
